@@ -302,4 +302,50 @@ div.reveal
             | target_link_libraries(yuric PUBLIC yuri)
             | target_compile_options(yuric PRIVATE -Wall -Wextra)
 
+      section
+        h2 CMake Project
+
+        pre
+          code cmake -B build -S . -GNinja -DCMAKE_BUILD_TYPE=Debug
+
+        ul
+          li
+            code -B build
+            |  : use o diretório 
+            code build
+            |  para armazenar os arquivos gerados.
+          li
+            code -S .
+            |  : use o diretório atual para configurar (onde está o 
+            code CMakeLists.txt
+            | .
+          li
+            code -GNinja
+            | : 
+            b (opcional)
+            |  use o executor Ninja para acelerar a compilação.
+          li
+            code -DCMAKE_BUILD_TYPE=Debug
+            |  : Use modo debug.
+
+      section
+        h2 CMake Build
+
+        pre
+          code cmake --build build
+
+        pre.fragment
+          code
+            | .
+            | +- CMakeLists.txt
+            | +- src/
+            |     +- CMakeLists.txt
+            |     +- ast.hpp
+            |     +- ast.cpp
+            |     +- tokenizer.hpp
+            |     +- tokenizer.cpp
+            | +- cmd/
+            |     +- CMakeLists.txt
+            |     +- main.cpp
+
 // vim: ts=2 sts=2 sw=2 et
