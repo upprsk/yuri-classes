@@ -348,4 +348,32 @@ div.reveal
             |     +- CMakeLists.txt
             |     +- main.cpp
 
+      section(data-auto-animate)
+        h2 Hello, World!
+
+        pre(data-id="code-anim" )
+          code(data-line-numbers)
+            | #include "fmt/format"
+            |
+            | auto main() -> int {
+            |     fmt::println("Hello, World!");
+            | }
+
+      section(data-auto-animate)
+        h2 Hello, World!
+
+        pre(data-id="code-anim")
+          code(data-line-numbers)
+            | #include "fmt/format"
+            | #include "cpptrace/from_current"
+            |
+            | auto main() -> int {
+            |     CPPTRACE_TRY {
+            |         fmt::println("Hello, World!");
+            |     } CPPTRACE_CATCH(const std::exception& e) {
+            |         fmt::println(stderr, "Exception: {}", e.what());
+            |         cpptrace::from_current_exception().print();
+            |     }
+            | }
+
 // vim: ts=2 sts=2 sw=2 et
