@@ -39,7 +39,7 @@ div.reveal
             | };
             |
             | struct Token {
-            |     /* ... */
+            |     TokenType type;
             | };
 
       section(data-auto-animate)
@@ -311,6 +311,117 @@ div.reveal
               |         }
               |     }
               | };
+
+    section
+      section(data-auto-animate)
+        h2 Tokens maiores
+        pre.language-cpp(data-id="code-anim")
+          code(data-line-numbers="|8-10")
+            | enum class TokenType {
+            |     Err,
+            |     Plus,       // +
+            |     Minus,      // -
+            |     Star,       // *
+            |     Slash,      // /
+            |     Equal,      // =
+            |     EqualEqual, // ==
+            |     Int,   // [0-9][0-9_]+
+            |     Id,    // [a-zA-Z_][a-zA-Z_0-9_]+
+            |     Eof,
+            | };
+
+    section
+      section(data-auto-animate)
+        pre.r-stretch.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | auto tokenize_one() -> Token {
+              |     skip_whitespace();
+              |     if (is_at_end()) return mkt(TokenType::Eof);
+              |
+              |     auto c = peek_and_advance();
+              |     switch (c) {
+              |         case '+': return mkt(TokenType::Plus);
+              |         case '-': return mkt(TokenType::Minus);
+              |         case '*': return mkt(TokenType::Star);
+              |         case '/': return mkt(TokenType::Slash);
+              |         default:
+              |             er->report_error(span(), "invalid character found '{}'", c);
+              |             return mkt(TokenType::Err);
+              |     }
+              | }
+
+      section(data-auto-animate)
+        pre.r-stretch.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | auto tokenize_one() -> Token {
+              |     skip_whitespace();
+              |     if (is_at_end()) return mkt(TokenType::Eof);
+              |
+              |     auto c = peek_and_advance();
+              |     switch (c) {
+              |         case '+': return mkt(TokenType::Plus);
+              |         case '-': return mkt(TokenType::Minus);
+              |         case '*': return mkt(TokenType::Star);
+              |         case '/': return mkt(TokenType::Slash);
+              |         case '=': 
+              |           if (match('=')) return mkt(TokenType::EqualEqual);
+              |           return mkt(TokenType::Equal);
+              |         default:
+              |             er->report_error(span(), "invalid character found '{}'", c);
+              |             return mkt(TokenType::Err);
+              |     }
+              | }
+
+      section(data-auto-animate)
+        pre.r-stretch.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | auto tokenize_one() -> Token {
+              |     skip_whitespace();
+              |     if (is_at_end()) return mkt(TokenType::Eof);
+              |
+              |     auto c = peek_and_advance();
+              |     switch (c) {
+              |         case '+': return mkt(TokenType::Plus);
+              |         case '-': return mkt(TokenType::Minus);
+              |         case '*': return mkt(TokenType::Star);
+              |         case '/': return mkt(TokenType::Slash);
+              |         case '=': 
+              |           if (match('=')) return mkt(TokenType::EqualEqual);
+              |           return mkt(TokenType::Equal);
+              |         case '0'...'9': return tokenize_number();
+              |         case 'a'...'z':
+              |         case 'A'...'Z':
+              |         case '_': return tokenize_id();
+              |         default:
+              |             er->report_error(span(), "invalid character found '{}'", c);
+              |             return mkt(TokenType::Err);
+              |     }
+              | }
+
+    section
+      section(data-auto-animate)
+        pre.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | auto tokenize_number() -> Token {
+              |     while (is_digit(peek()) || peek() == '_') advance();
+              |
+              |     return mkt(TokenType::Int);
+              | }
+              |
+              | auto tokenize_id() -> Token {
+              |     while (is_alpha_numeric(peek()) || peek() == '_')
+              |         advance();
+              |
+              |     return mkt(TokenType::Id);
+              | }
 
     section
       h2 Na prática!
