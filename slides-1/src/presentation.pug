@@ -1,0 +1,379 @@
+div.reveal
+  div.slides
+    section
+      h1 Compiladores na Prática
+
+      p Lucas Ross - GEC - P10
+      small
+        a(href="lucas.ross@gec.inatel.br") lucas.ross@gec.inatel.br
+        br
+        // a(href="http://upprsk.sytes.net") upprsk.sytes.net
+        // br
+        a(href="http://upprsk.github.io") upprsk.github.io
+
+    section
+      h2 Ementa
+
+      ul
+        li Teoria de compiladores
+        li
+          | Implementação de um 
+          code lexer
+        li
+          | Implementação de um 
+          code parser
+        li Geração direta de código
+        li Representações intermediárias (IR).
+        li Geração de código a partir da IR.
+        li Otimização
+
+    section
+      section(data-auto-animate)
+        h2 O que faz um compilador?
+
+        .h-52
+
+        .flex.justify-between
+          .w-32.h-32.bg-blue-500(data-id="1")
+          .w-32.h-32.bg-red-500(data-id="2")
+
+      section(data-auto-animate)
+        h2 O que faz um compilador?
+
+        p Transforma uma sequência de bytes em outra sequência de bytes.
+
+        .flex.justify-between
+          .w-32.h-32.bg-blue-500.place-content-center(data-id="1") txt
+          .w-32.h-32.bg-red-500.place-content-center(data-id="2") asm
+
+      section(data-auto-animate)
+        h2 O que faz um compilador?
+
+        p Utiliza de várias representações, cada uma tornando mais fácil/
+          | eficiente converter para a próxima.
+
+        .flex.justify-between
+          .w-32.h-32.bg-blue-500.place-content-center(data-id="1") txt
+          .w-32.h-32.bg-purple-500.place-content-center(data-id="3") tok
+          .w-32.h-32.bg-green-500.place-content-center(data-id="4") AST
+          .w-32.h-32.bg-orange-500.place-content-center(data-id="5") IR
+          .w-32.h-32.bg-red-500.place-content-center(data-id="2") asm
+
+      section(data-auto-animate)
+        h2 Código Fonte
+
+        .grid.grid-cols-5
+          .col-span-1
+            .w-32.h-32.bg-blue-500.place-content-center(data-id="1") txt
+          .col-span-4
+            p Código fonte, representação textual da linguagem implementada.
+            pre
+              code
+                | func main() int {
+                |     var i = 0;
+                |     while i < 10 {
+                |         print_int(i);
+                |     }
+                |     
+                |     return 0;
+                | }
+
+      section(data-auto-animate)
+        h2 O que faz um compilador?
+
+        p Utiliza de várias representações, cada uma tornando mais fácil/
+          | eficiente converter para a próxima.
+
+        .flex.justify-between
+          .w-32.h-32.bg-white.border.border-blue-500.place-content-center(data-id="1") txt
+          .w-32.h-32.bg-purple-500.place-content-center(data-id="3") tok
+          .w-32.h-32.bg-green-500.place-content-center(data-id="4") AST
+          .w-32.h-32.bg-orange-500.place-content-center(data-id="5") IR
+          .w-32.h-32.bg-red-500.place-content-center(data-id="2") asm
+
+      section(data-auto-animate)
+        h2 tok
+
+        .grid.grid-cols-5
+          .col-span-1
+            .w-32.h-32.bg-purple-500.place-content-center(data-id="3") tok
+          .col-span-4
+            p Texto convertido para tokens.
+            p Espaço em branco é removido e valores atingem seu tamanho <i>léxico</i> mínimo.
+            pre
+              code
+                | "func" "main" "(" ")" "int" "{"
+                |     "var" "i" "=" "0" ";"
+                |     "while" "i" "<" "10" "{"
+                |         "print_int" "(" "i" ")" ";"
+                |     "}"
+                |     
+                |     "return" "0" ";"
+                | "}"
+
+      section(data-auto-animate)
+        h2 O que faz um compilador?
+
+        p Utiliza de várias representações, cada uma tornando mais fácil/
+          | eficiente converter para a próxima.
+
+        .flex.justify-between
+          .w-32.h-32.border.border-blue-500.place-content-center(data-id="1") txt
+          .w-32.h-32.border.border-purple-500.place-content-center(data-id="3") tok
+          .w-32.h-32.bg-green-500.place-content-center(data-id="4") AST
+          .w-32.h-32.bg-orange-500.place-content-center(data-id="5") IR
+          .w-32.h-32.bg-red-500.place-content-center(data-id="2") asm
+
+      section(data-auto-animate)
+        h2 Abstract Syntax Tree
+
+        .grid.grid-cols-5
+          .col-span-1
+            .w-32.h-32.bg-green-500.place-content-center(data-id="4") AST
+          .col-span-4
+            p Tokens convertidos para uma árvore de <i>nodes</i>.
+
+            .grid.grid-cols-2
+              div
+                pre
+                  code
+                    | 1 + 1 * 3
+              .mermaid
+                pre
+                  | flowchart TD
+                  | sum["\+"] --> mul["\*"] --> 1a[1] & 3
+                  | sum --> 1b[1]
+
+      section(data-auto-animate)
+        h2 O que faz um compilador?
+
+        p Utiliza de várias representações, cada uma tornando mais fácil/
+          | eficiente converter para a próxima.
+
+        .flex.justify-between
+          .w-32.h-32.border.border-blue-500.place-content-center(data-id="1") txt
+          .w-32.h-32.border.border-purple-500.place-content-center(data-id="3") tok
+          .w-32.h-32.border.border-green-500.place-content-center(data-id="4") AST
+          .w-32.h-32.bg-orange-500.place-content-center(data-id="5") IR
+          .w-32.h-32.bg-red-500.place-content-center(data-id="2") asm
+
+      section(data-auto-animate)
+        h2
+          i Intermediate Representation
+
+        .grid.grid-cols-5
+          .col-span-1
+            .w-32.h-32.bg-orange-500.place-content-center(data-id="5") IR
+          .col-span-4
+            p
+              | AST Convertida para uma representação intermediária conveniente para
+              | otimização, geração de código, verificação semântica.
+
+        code
+          pre
+            | ; LLVM IR
+            | define dso_local i32 @main() #0 {
+            | entry:
+            |   %retval = alloca i32, align 4
+            |   store i32 0, ptr %retval, align 4
+            |   %call = call i32 (ptr, ...) @printf(ptr noundef @.str)
+            |   ret i32 0
+            | }
+
+      section(data-auto-animate)
+        h2 O que faz um compilador?
+
+        p Utiliza de várias representações, cada uma tornando mais fácil/
+          | eficiente converter para a próxima.
+
+        .flex.justify-between
+          .w-32.h-32.border.border-blue-500.place-content-center(data-id="1") txt
+          .w-32.h-32.border.border-purple-500.place-content-center(data-id="3") tok
+          .w-32.h-32.border.border-green-500.place-content-center(data-id="4") AST
+          .w-32.h-32.border.border-orange-500.place-content-center(data-id="5") IR
+          .w-32.h-32.bg-red-500.place-content-center(data-id="2") asm
+
+
+      section(data-auto-animate)
+        h2 Assembly
+
+        .grid.grid-cols-5
+          .col-span-1
+            .w-32.h-32.bg-red-500.place-content-center(data-id="2") asm
+          .col-span-4
+            p.text-2xl Ainda não é o último passo, o assembler ainda precisa de transformar
+              | em um binário executável. Mas não é necessário para os nossos
+              | propósitos.
+
+        .grid.grid-cols-2
+          code
+            pre
+              | asm func print_int(v: int) {
+              |     "li $v0, 1"
+              |     "syscall"
+              |     "jr $ra"
+              | }
+              | 
+              | func main() int {
+              |     print_int(42);
+              | 
+              |     return 0;
+              | }
+
+          code
+            pre
+              | main:
+              |     subu $sp, $sp, 8
+              |     sw $ra, 0($sp)
+              |     # end of preamble
+              |     li $a0, 42
+              |     jal print_int
+              |     move $t0, $v0
+              |     move $v0, $zero
+              | main.ret:
+              |     lw $ra, 0($sp)
+              |     addu $sp, $sp, 8
+              |     jr $ra
+
+    section
+      section
+        h2 Ao código!
+
+      section
+        h2 CMake
+
+        pre
+          code(data-line-numbers="|2|4-8|10-11|12-13|15|17-21|22-27|29|29-30")
+            | # CMakeLists.txt
+            | cmake_minimum_required(VERSION 3.11...3.30)
+            |
+            | project(
+            |   yuri
+            |   VERSION 1.0
+            |   LANGUAGES C CXX
+            | )
+            |
+            | set(CMAKE_CXX_STANDARD 20)
+            | set(CMAKE_CXX_STANDARD_REQUIRED ON)
+            | set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+            | set(CMAKE_COLOR_DIAGNOSTICS ON)
+            |
+            | include(FetchContent)
+            | 
+            | FetchContent_Declare(
+            |   fmt
+            |   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+            |   GIT_TAG        11.1.3)
+            | FetchContent_MakeAvailable(fmt)
+            | 
+            | FetchContent_Declare(
+            |   cpptrace
+            |   GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
+            |   GIT_TAG        v0.7.5)
+            | FetchContent_MakeAvailable(cpptrace)
+            |
+            | add_subdirectory(src)
+            | add_subdirectory(cmd)
+
+      section
+        h2 CMake
+
+        pre
+          code(data-line-numbers="|2-4|5|6|7-8")
+            | # src/CMakeLists.txt
+            | add_library(yuri
+            |     # ...
+            | )
+            | target_include_directories(yuri PUBLIC .)
+            | target_compile_options(yuri PRIVATE -Wall -Wextra)
+            | target_link_libraries(yuri PUBLIC
+            |   fmt::fmt cpptrace::cpptrace)
+
+      section
+        h2 CMake
+
+        pre
+          code(data-line-numbers="|6")
+            | # cmd/CMakeLists.txt
+            | add_executable(yuric
+            |     main.cpp
+            | )
+            | target_include_directories(yuric PRIVATE .)
+            | target_link_libraries(yuric PUBLIC yuri)
+            | target_compile_options(yuric PRIVATE -Wall -Wextra)
+
+      section
+        h2 CMake Project
+
+        pre
+          code cmake -B build -S . -GNinja -DCMAKE_BUILD_TYPE=Debug
+
+        ul
+          li
+            code -B build
+            |  : use o diretório 
+            code build
+            |  para armazenar os arquivos gerados.
+          li
+            code -S .
+            |  : use o diretório atual para configurar (onde está o 
+            code CMakeLists.txt
+            | .
+          li
+            code -GNinja
+            | : 
+            b (opcional)
+            |  use o executor Ninja para acelerar a compilação.
+          li
+            code -DCMAKE_BUILD_TYPE=Debug
+            |  : Use modo debug.
+
+      section
+        h2 CMake Build
+
+        pre
+          code cmake --build build
+
+        pre.fragment
+          code
+            | .
+            | +- CMakeLists.txt
+            | +- src/
+            |     +- CMakeLists.txt
+            |     +- ast.hpp
+            |     +- ast.cpp
+            |     +- tokenizer.hpp
+            |     +- tokenizer.cpp
+            | +- cmd/
+            |     +- CMakeLists.txt
+            |     +- main.cpp
+
+      section(data-auto-animate)
+        h2 Hello, World!
+
+        pre(data-id="code-anim" )
+          code(data-line-numbers)
+            | #include "fmt/format"
+            |
+            | auto main() -> int {
+            |     fmt::println("Hello, World!");
+            | }
+
+      section(data-auto-animate)
+        h2 Hello, World!
+
+        pre(data-id="code-anim")
+          code(data-line-numbers)
+            | #include "fmt/format"
+            | #include "cpptrace/from_current"
+            |
+            | auto main() -> int {
+            |     CPPTRACE_TRY {
+            |         fmt::println("Hello, World!");
+            |     } CPPTRACE_CATCH(const std::exception& e) {
+            |         fmt::println(stderr, "Exception: {}", e.what());
+            |         cpptrace::from_current_exception().print();
+            |     }
+            | }
+
+// vim: ts=2 sts=2 sw=2 et

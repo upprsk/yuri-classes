@@ -1,0 +1,429 @@
+div.reveal
+  div.slides
+    section
+      h1 Compiladores na Prática
+
+      p Lucas Ross - GEC - P10
+      small
+        a(href="lucas.ross@gec.inatel.br") lucas.ross@gec.inatel.br
+        br
+        // a(href="http://upprsk.sytes.net") upprsk.sytes.net
+        // br
+        a(href="http://upprsk.github.io") upprsk.github.io
+
+    section
+      h2 Análize léxica
+
+      p Converter a sequência de bytes do arquivo de texto de entrada para uma
+        |  sequência de 
+        code tokens
+        |  ou 
+        code palavras
+        | .
+
+    section
+      section(data-auto-animate)
+        h2 O que é um token?
+        pre.fragment.language-cpp(data-id="code-anim")
+          code(data-line-numbers)
+            | enum class Token {
+            |     /* ... */
+            | };
+
+      section(data-auto-animate)
+        h2 O que é um token?
+        pre.fragment.language-cpp(data-id="code-anim")
+          code(data-line-numbers)
+            | enum class TokenType {
+            |     /* ... */
+            | };
+            |
+            | struct Token {
+            |     TokenType type;
+            | };
+
+      section(data-auto-animate)
+        h2 O que é um token?
+        pre.language-cpp(data-id="code-anim")
+          code(data-line-numbers)
+            | enum class TokenType {
+            |     Err,
+            |     Eof,
+            | };
+            |
+            | struct Token {
+            |     TokenType type;
+            | };
+
+      section(data-auto-animate)
+        h2 O que é um token?
+        pre.language-cpp(data-id="code-anim")
+          code(data-line-numbers="|7,11-13")
+            | enum class TokenType {
+            |     Err,
+            |     Plus,  // +
+            |     Minus, // -
+            |     Star,  // *
+            |     Slash, // /
+            |     Int,   // [0-9][0-9_]+
+            |     Eof,
+            | };
+            |
+            | struct Token {
+            |     TokenType type;
+            | };
+
+      section(data-auto-animate)
+        pre.language-cpp(data-id="code-anim")
+          code(data-line-numbers="7,13")
+            | enum class TokenType {
+            |     Err,
+            |     Plus,  // +
+            |     Minus, // -
+            |     Star,  // *
+            |     Slash, // /
+            |     Int,   // [0-9][0-9_]+
+            |     Eof,
+            | };
+            |
+            | struct Token {
+            |     TokenType type;
+            |     int       value;
+            | };
+
+      section(data-auto-animate)
+        pre.language-cpp(data-id="code-anim")
+          code(data-line-numbers="8,14")
+            | enum class TokenType {
+            |     Err,
+            |     Plus,  // +
+            |     Minus, // -
+            |     Star,  // *
+            |     Slash, // /
+            |     Int,   // [0-9][0-9_]+
+            |     Id,    // [a-zA-Z_][a-zA-Z_0-9_]+
+            |     Eof,
+            | };
+            |
+            | struct Token {
+            |     TokenType type;
+            |     int       value;
+            | };
+
+        p Mas e quanto a valores strings, ou double?
+        p.fragment Mas e quanto a localização e mensagens de erro?
+
+      section(data-auto-animate)
+        pre.r-stretch.language-cpp(data-id="code-anim")
+          code(data-line-numbers)
+            | enum class TokenType {
+            |     Err,
+            |     Plus,  // +
+            |     Minus, // -
+            |     Star,  // *
+            |     Slash, // /
+            |     Int,   // [0-9][0-9_]+
+            |     Id,    // [a-zA-Z_][a-zA-Z_0-9_]+
+            |     Eof,
+            | };
+            |
+            | struct Token {
+            |     TokenType type;
+            |     Span      span;
+            | };
+            |
+            | struct Span {
+            |     uint32_t begin;
+            |     uint32_t end;
+            | }
+
+    section
+      section
+        h2 Um tokenizador
+
+        .flex.justify-center
+          .mermaid
+            pre
+              | flowchart LR
+              | string --> tokens
+
+        p
+        | Uma função que recebe um string e retorna um vetor de 
+        code Token
+        | s
+
+      section(data-auto-animate)
+        h2 Um tokenizador
+
+        pre.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers="|4-5|7-8")
+            script(type="text/template")
+              | // tokenizer.hpp
+              | namespace yuri {
+              |
+              | enum class TokenType { /* ... */ };
+              | struct Token { /* ... */ };
+              |
+              | auto tokenize(std::string_view source)
+              |     -> std::vector<Token>;
+              |
+              | }
+
+      section(data-auto-animate)
+        pre.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers="7,14-15")
+            script(type="text/template")
+              | // tokenizer.hpp
+              | namespace yuri {
+              |
+              | enum class TokenType { /* ... */ };
+              | struct Token { /* ... */ };
+              |
+              | auto tokenize(std::string_view source, ErrorReporter& er)
+              |     -> std::vector<Token>;
+              |
+              | }
+
+    section
+      section(data-auto-animate)
+        pre.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | #include "tokenizer.hpp"
+              |
+              | namespace yuri {
+              |
+              | auto tokenize(std::string_view source, ErrorReporter& er)
+              |     -> std::vector<Token> {
+              |     // ...
+              | }
+              |
+              | }
+
+      section(data-auto-animate)
+        pre.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | auto tokenize(std::string_view source, ErrorReporter& er)
+              |     -> std::vector<Token> {
+              |     auto tokenizer = Tokenizer{.source=source, .er=&er};
+              |     return tokenizer.tokenize_all();
+              | }
+
+      section(data-auto-animate)
+        pre.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | struct Tokenizer {
+              |     std::string_view source;
+              |     ErrorReporter*   er;
+              |     uint32_t         start{};
+              |     uint32_t         current{};
+              | };
+              |
+              | auto tokenize(std::string_view source, ErrorReporter& er)
+              |     -> std::vector<Token> {
+              |     auto tokenizer = Tokenizer{.source=source, .er=&er};
+              |     return tokenizer.tokenize_all();
+              | }
+
+      section(data-auto-animate)
+        pre.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | struct Tokenizer {
+              |     auto tokenize_all() -> std::vector<Token> {
+              |         std::vector<Token> tokens;
+              |
+              |         while (!is_at_end()) {
+              |             tokens.push_back(tokenize_one());
+              |         }
+              |
+              |         return tokens;
+              |     }
+              |
+              |     std::string_view source;
+              |     ErrorReporter*   er;
+              |     uint32_t         start{};
+              |     uint32_t         current{};
+              | };
+
+      section(data-auto-animate)
+        pre.r-stretch.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | struct Tokenizer {
+              |     [[nodiscard]] constexpr auto is_at_end() const -> bool {
+              |         return current == source.length();
+              |     }
+              |     constexpr void advance() {
+              |         if (!is_at_end()) current++;
+              |     }
+              |     [[nodiscard]] constexpr auto peek() const -> uint8_t {
+              |         if (is_at_end()) return 0;
+              |         return source.at(current);
+              |     }
+              |     [[nodiscard]] constexpr auto span() const -> Span {
+              |         return { .begin = start, .end = current };
+              |     }
+              |     [[nodiscard]] constexpr auto mkt(TokenType t) const
+              |         -> Token {
+              |         return {.type = t, .span = span()};
+              |     }
+              | };
+
+      section(data-auto-animate)
+        pre.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | struct Tokenizer {
+              |     auto is_at_end() const -> bool {
+              |         return current == source.length();
+              |     }
+              | };
+
+      section(data-auto-animate)
+        pre.r-stretch.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              |
+              | struct Tokenizer {
+              |     auto tokenize_one() -> Token {
+              |         skip_whitespace();
+              |         if (is_at_end()) return mkt(TokenType::Eof);
+              |
+              |         auto c = peek_and_advance();
+              |         switch (c) {
+              |             case '+': return mkt(TokenType::Plus);
+              |             case '-': return mkt(TokenType::Minus);
+              |             case '*': return mkt(TokenType::Star);
+              |             case '/': return mkt(TokenType::Slash);
+              |             default:
+              |                 er->report_error(span(), "invalid character found '{}'", c);
+              |                 return mkt(TokenType::Err);
+              |         }
+              |     }
+              | };
+
+    section
+      section(data-auto-animate)
+        h2 Tokens maiores
+        pre.language-cpp(data-id="code-anim")
+          code(data-line-numbers="|8-10")
+            | enum class TokenType {
+            |     Err,
+            |     Plus,       // +
+            |     Minus,      // -
+            |     Star,       // *
+            |     Slash,      // /
+            |     Equal,      // =
+            |     EqualEqual, // ==
+            |     Int,   // [0-9][0-9_]+
+            |     Id,    // [a-zA-Z_][a-zA-Z_0-9_]+
+            |     Eof,
+            | };
+
+    section
+      section(data-auto-animate)
+        pre.r-stretch.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | auto tokenize_one() -> Token {
+              |     skip_whitespace();
+              |     if (is_at_end()) return mkt(TokenType::Eof);
+              |
+              |     auto c = peek_and_advance();
+              |     switch (c) {
+              |         case '+': return mkt(TokenType::Plus);
+              |         case '-': return mkt(TokenType::Minus);
+              |         case '*': return mkt(TokenType::Star);
+              |         case '/': return mkt(TokenType::Slash);
+              |         default:
+              |             er->report_error(span(), "invalid character found '{}'", c);
+              |             return mkt(TokenType::Err);
+              |     }
+              | }
+
+      section(data-auto-animate)
+        pre.r-stretch.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | auto tokenize_one() -> Token {
+              |     skip_whitespace();
+              |     if (is_at_end()) return mkt(TokenType::Eof);
+              |
+              |     auto c = peek_and_advance();
+              |     switch (c) {
+              |         case '+': return mkt(TokenType::Plus);
+              |         case '-': return mkt(TokenType::Minus);
+              |         case '*': return mkt(TokenType::Star);
+              |         case '/': return mkt(TokenType::Slash);
+              |         case '=': 
+              |           if (match('=')) return mkt(TokenType::EqualEqual);
+              |           return mkt(TokenType::Equal);
+              |         default:
+              |             er->report_error(span(), "invalid character found '{}'", c);
+              |             return mkt(TokenType::Err);
+              |     }
+              | }
+
+      section(data-auto-animate)
+        pre.r-stretch.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | auto tokenize_one() -> Token {
+              |     skip_whitespace();
+              |     if (is_at_end()) return mkt(TokenType::Eof);
+              |
+              |     auto c = peek_and_advance();
+              |     switch (c) {
+              |         case '+': return mkt(TokenType::Plus);
+              |         case '-': return mkt(TokenType::Minus);
+              |         case '*': return mkt(TokenType::Star);
+              |         case '/': return mkt(TokenType::Slash);
+              |         case '=': 
+              |           if (match('=')) return mkt(TokenType::EqualEqual);
+              |           return mkt(TokenType::Equal);
+              |         case '0'...'9': return tokenize_number();
+              |         case 'a'...'z':
+              |         case 'A'...'Z':
+              |         case '_': return tokenize_id();
+              |         default:
+              |             er->report_error(span(), "invalid character found '{}'", c);
+              |             return mkt(TokenType::Err);
+              |     }
+              | }
+
+    section
+      section(data-auto-animate)
+        pre.language-cpp(data-id="code-anim-2")
+          code(data-line-numbers)
+            script(type="text/template")
+              | // tokenizer.cpp
+              | auto tokenize_number() -> Token {
+              |     while (is_digit(peek()) || peek() == '_') advance();
+              |
+              |     return mkt(TokenType::Int);
+              | }
+              |
+              | auto tokenize_id() -> Token {
+              |     while (is_alpha_numeric(peek()) || peek() == '_')
+              |         advance();
+              |
+              |     return mkt(TokenType::Id);
+              | }
+
+    section
+      h2 Na prática!
+
+// vim: ts=2 sts=2 sw=2 et
