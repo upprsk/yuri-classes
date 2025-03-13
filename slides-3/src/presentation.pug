@@ -1,0 +1,316 @@
+div.reveal
+  div.slides
+    section
+      h1 Compiladores na Prática
+
+      p Lucas Ross - GEC - P10
+      small
+        a(href="lucas.ross@gec.inatel.br") lucas.ross@gec.inatel.br
+        br
+        a(href="http://upprsk.github.io") upprsk.github.io
+
+    section
+      section(data-markdown="" data-auto-animate=""): script(type="text/template").
+        ## Análize Sintática
+
+        Converter uma sequência de _tokens_ em uma _Abstract Syntax Tree_ (AST).
+
+      section(data-markdown="" data-auto-animate=""): script(type="text/template").
+        ## O que é uma AST?
+
+        Estrutura de dados prefundamente recursiva que representa a sintaxe de
+        uma linguagem.
+
+      section(data-auto-animate="")
+        h2 O que é uma AST?
+
+        .grid.grid-cols-2
+          div.grid.place-items-center
+            pre: code 1 + 2
+
+          .mermaid.grid.place-items-center: script(type="text/template").
+            flowchart TB
+
+             Plus["Add"] --> i1["Int(1)"]
+             Plus        --> i2["Int(2)"]
+
+      section(data-auto-animate="")
+        h2 O que é uma AST?
+
+        .grid.grid-cols-2
+          div.grid.place-items-center
+            pre: code 1 + 2 * 3
+
+          .mermaid.grid.place-items-center: script(type="text/template").
+              flowchart TB
+
+               Add["Add"] --> i1["Int(1)"]
+               Add        --> Mul
+               Mul["Mul"] --> i2["Int(2)"]
+               Mul        --> i3["Int(3)"]
+
+        p.fragment Codifica a ordem e precedência das operações.
+
+    section
+      h2 Definição da Sintaxe
+
+      ol
+        li Backus–Naur Form (#[b BNF])
+        li Extended Backus–Naur Form (#[b EBNF])
+
+    section
+      section
+        h2 Backus–Naur Form
+
+        pre: code: script(type="text/template" class="language-bnf").
+          <symbol> ::= __expression__
+
+        small: a(href="https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form") Wikipedia reference
+
+      section
+        h2 Extended Backus–Naur Form
+
+        pre: code: script(type="text/template" class="language-ebnf").
+          digit excluding zero = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+          digit                = "0" | digit excluding zero ;
+
+        small: a(href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form").
+          Wikipedia reference
+
+      section
+        h2 Nossa Backus–Naur Form
+
+        pre: code: script(type="text/template" class="language-ebnf").
+          source_file ::= return_stmt ;
+          return_stmt ::= "return" expr ";" ;
+
+    section
+      section(data-auto-animate="")
+        h2 Construção de Expressões
+
+        pre(data-id="expr-1"): code: script(type="text/template") 1 + 2
+        pre.fragment: code(data-line-numbers="")
+          script(type="text/template" class="language-ebnf").
+            expr ::= INT "+" INT ;
+            INT  ::= [0-9][0-9_]+ ;
+
+      section(data-auto-animate="")
+        h2 Construção de Expressões
+
+        pre(data-id="expr-1"): code: script(type="text/template") 1 + 2 + 3
+        pre.fragment: code(data-line-numbers="")
+          script(type="text/template" class="language-ebnf").
+            expr ::= INT { "+" INT } ;
+            INT  ::= [0-9][0-9_]+ ;
+
+      section(data-auto-animate="")
+        h2 Construção de Expressões
+
+        pre(data-id="expr-1"): code: script(type="text/template") 1 + 2 * 3
+        pre.fragment: code(data-line-numbers="")
+          script(type="text/template" class="language-ebnf").
+            expr   ::= term ;
+            term   ::= factor { "+" factor } ;
+            factor ::= INT { "*" INT } ;
+            INT    ::= [0-9][0-9_]+ ;
+
+      section(data-auto-animate="")
+        h2 Execução
+
+        .grid.grid-cols-3
+          div: pre(data-id="expr-1"): code: script(type="text/template").
+            1 + 2 * 3
+            ^
+
+          .relative.col-span-2
+            pre: code(data-line-numbers="")
+              script(type="text/template" class="language-ebnf").
+                expr   ::= term ;
+                term   ::= factor { "+" factor } ;
+                factor ::= INT { "*" INT } ;
+                INT    ::= [0-9][0-9_]+ ;
+
+      section(data-auto-animate="")
+        h2 Execução
+
+        .grid.grid-cols-3
+          div: pre(data-id="expr-1"): code: script(type="text/template").
+            1 + 2 * 3
+            ^
+
+          .relative.col-span-2
+            pre: code(data-line-numbers="")
+              script(type="text/template" class="language-ebnf").
+                expr   ::= term ;
+                term   ::= factor { "+" factor } ;
+                factor ::= INT { "*" INT } ;
+                INT    ::= [0-9][0-9_]+ ;
+
+          ul
+            li.fragment expr
+            li.fragment term
+            li.fragment factor
+            li.fragment INT
+
+          .mermaid.grid.place-items-center.fragment: script(type="text/template").
+            flowchart TB
+
+             Int["1"]
+
+      section(data-auto-animate="")
+        h2 Execução
+
+        .grid.grid-cols-3
+          div: pre(data-id="expr-1"): code: script(type="text/template").
+            1 + 2 * 3
+              ^
+
+          .relative.col-span-2
+            pre: code(data-line-numbers="")
+              script(type="text/template" class="language-ebnf").
+                expr   ::= term ;
+                term   ::= factor { "+" factor } ;
+                factor ::= INT { "*" INT } ;
+                INT    ::= [0-9][0-9_]+ ;
+
+          ul
+            li.fragment factor
+            li.fragment term
+
+          .mermaid.grid.place-items-center: script(type="text/template").
+            flowchart TB
+
+             Int["1"]
+
+      section(data-auto-animate="")
+        h2 Execução
+
+        .grid.grid-cols-3
+          div: pre(data-id="expr-1"): code: script(type="text/template").
+            1 + 2 * 3
+                ^
+
+          .relative.col-span-2
+            pre: code(data-line-numbers="")
+              script(type="text/template" class="language-ebnf").
+                expr   ::= term ;
+                term   ::= factor { "+" factor } ;
+                factor ::= INT { "*" INT } ;
+                INT    ::= [0-9][0-9_]+ ;
+
+          ul
+            li.fragment factor
+            li.fragment INT
+
+          .mermaid.grid.place-items-center: script(type="text/template").
+            flowchart TB
+
+             Int["1"]
+             Add
+
+      section(data-auto-animate="")
+        h2 Execução
+
+        .grid.grid-cols-3
+          div: pre(data-id="expr-1"): code: script(type="text/template").
+            1 + 2 * 3
+                  ^
+
+          .relative.col-span-2
+            pre: code(data-line-numbers="")
+              script(type="text/template" class="language-ebnf").
+                expr   ::= term ;
+                term   ::= factor { "+" factor } ;
+                factor ::= INT { "*" INT } ;
+                INT    ::= [0-9][0-9_]+ ;
+
+          ul
+            li.fragment factor
+
+          .mermaid.grid.place-items-center: script(type="text/template").
+            flowchart TB
+
+             Int1["1"]
+             Add
+             Int2["2"]
+
+      section(data-auto-animate="")
+        h2 Execução
+
+        .grid.grid-cols-3
+          div: pre(data-id="expr-1"): code: script(type="text/template").
+            1 + 2 * 3
+                    ^
+
+          .relative.col-span-2
+            pre: code(data-line-numbers="")
+              script(type="text/template" class="language-ebnf").
+                expr   ::= term ;
+                term   ::= factor { "+" factor } ;
+                factor ::= INT { "*" INT } ;
+                INT    ::= [0-9][0-9_]+ ;
+
+          ul
+            li.fragment factor
+            li.fragment INT
+
+          .mermaid.grid.place-items-center: script(type="text/template").
+            flowchart TB
+
+             Int1["1"]
+             Add
+             Int2["2"]
+             Mul
+             Int3["3"]
+
+      section(data-auto-animate="")
+        h2 Execução
+
+        .grid.grid-cols-3
+          div: pre(data-id="expr-1"): code: script(type="text/template").
+            1 + 2 * 3
+                      ^
+
+          .relative.col-span-2
+            pre: code(data-line-numbers="")
+              script(type="text/template" class="language-ebnf").
+                expr   ::= term ;
+                term   ::= factor { "+" factor } ;
+                factor ::= INT { "*" INT } ;
+                INT    ::= [0-9][0-9_]+ ;
+
+          .mermaid.grid.place-items-center: script(type="text/template").
+            flowchart TB
+
+             Int1["1"]
+             Add
+             Int2["2"]
+             Mul
+             Int3["3"]
+             Add --> Int1
+             Mul --> Int2
+             Mul --> Int3
+             Add --> Mul
+
+    section
+      h2 Sintaxe
+
+      pre.r-stretch: code: script(type="text/template" class="language-ebnf").
+        source_file ::= return_stmt ;
+
+        return_stmt ::= "return" expr ";" ;
+
+        expr ::= additive ;
+
+        additive       ::= multiplicative { ("+" | "-") multiplicative } ;
+        multiplicative ::= primary { ("*" | "/") primary } ;
+        primary        ::= "(" expr ")"
+                         | INT
+                         | ID
+                         ;
+
+        ID  ::= [a-zA-Z_][a-zA-Z_0-9]+ ;
+        INT ::= [0-9][0-9_]+ ;
+
+
+// vim: ts=2 sts=2 sw=2 et
