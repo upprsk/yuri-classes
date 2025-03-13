@@ -62,7 +62,7 @@ div.reveal
       section
         h2 Backus–Naur Form
 
-        pre: code: script(type="text/template" class="language-bnf").
+        pre: code.language-bnf: script(type="text/template").
           <symbol> ::= __expression__
 
         small: a(href="https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form") Wikipedia reference
@@ -70,7 +70,7 @@ div.reveal
       section
         h2 Extended Backus–Naur Form
 
-        pre: code: script(type="text/template" class="language-ebnf").
+        pre: code.language-ebnf: script(type="text/template").
           digit excluding zero = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
           digit                = "0" | digit excluding zero ;
 
@@ -80,7 +80,7 @@ div.reveal
       section
         h2 Nossa Backus–Naur Form
 
-        pre: code: script(type="text/template" class="language-ebnf").
+        pre: code.language-ebnf: script(type="text/template").
           source_file ::= return_stmt ;
           return_stmt ::= "return" expr ";" ;
 
@@ -89,8 +89,8 @@ div.reveal
         h2 Construção de Expressões
 
         pre(data-id="expr-1"): code: script(type="text/template") 1 + 2
-        pre.fragment: code(data-line-numbers="")
-          script(type="text/template" class="language-ebnf").
+        pre.fragment: code(data-line-numbers="" class="language-ebnf")
+          script(type="text/template").
             expr ::= INT "+" INT ;
             INT  ::= [0-9][0-9_]+ ;
 
@@ -98,8 +98,8 @@ div.reveal
         h2 Construção de Expressões
 
         pre(data-id="expr-1"): code: script(type="text/template") 1 + 2 + 3
-        pre.fragment: code(data-line-numbers="")
-          script(type="text/template" class="language-ebnf").
+        pre.fragment: code(data-line-numbers="" class="language-ebnf")
+          script(type="text/template").
             expr ::= INT { "+" INT } ;
             INT  ::= [0-9][0-9_]+ ;
 
@@ -107,8 +107,8 @@ div.reveal
         h2 Construção de Expressões
 
         pre(data-id="expr-1"): code: script(type="text/template") 1 + 2 * 3
-        pre.fragment: code(data-line-numbers="")
-          script(type="text/template" class="language-ebnf").
+        pre.fragment: code(data-line-numbers="" class="language-ebnf")
+          script(type="text/template").
             expr   ::= term ;
             term   ::= factor { "+" factor } ;
             factor ::= INT { "*" INT } ;
@@ -123,8 +123,8 @@ div.reveal
             ^
 
           .relative.col-span-2
-            pre: code(data-line-numbers="")
-              script(type="text/template" class="language-ebnf").
+            pre: code(data-line-numbers="" class="language-ebnf")
+              script(type="text/template").
                 expr   ::= term ;
                 term   ::= factor { "+" factor } ;
                 factor ::= INT { "*" INT } ;
@@ -139,8 +139,8 @@ div.reveal
             ^
 
           .relative.col-span-2
-            pre: code(data-line-numbers="")
-              script(type="text/template" class="language-ebnf").
+            pre: code(data-line-numbers="" class="language-ebnf")
+              script(type="text/template").
                 expr   ::= term ;
                 term   ::= factor { "+" factor } ;
                 factor ::= INT { "*" INT } ;
@@ -166,8 +166,8 @@ div.reveal
               ^
 
           .relative.col-span-2
-            pre: code(data-line-numbers="")
-              script(type="text/template" class="language-ebnf").
+            pre: code(data-line-numbers="" class="language-ebnf")
+              script(type="text/template").
                 expr   ::= term ;
                 term   ::= factor { "+" factor } ;
                 factor ::= INT { "*" INT } ;
@@ -191,8 +191,8 @@ div.reveal
                 ^
 
           .relative.col-span-2
-            pre: code(data-line-numbers="")
-              script(type="text/template" class="language-ebnf").
+            pre: code(data-line-numbers="" class="language-ebnf")
+              script(type="text/template").
                 expr   ::= term ;
                 term   ::= factor { "+" factor } ;
                 factor ::= INT { "*" INT } ;
@@ -205,8 +205,7 @@ div.reveal
           .mermaid.grid.place-items-center: script(type="text/template").
             flowchart TB
 
-             Int["1"]
-             Add
+             Add --> Int["1"]
 
       section(data-auto-animate="")
         h2 Execução
@@ -217,8 +216,8 @@ div.reveal
                   ^
 
           .relative.col-span-2
-            pre: code(data-line-numbers="")
-              script(type="text/template" class="language-ebnf").
+            pre: code(data-line-numbers="" class="language-ebnf")
+              script(type="text/template").
                 expr   ::= term ;
                 term   ::= factor { "+" factor } ;
                 factor ::= INT { "*" INT } ;
@@ -230,8 +229,7 @@ div.reveal
           .mermaid.grid.place-items-center: script(type="text/template").
             flowchart TB
 
-             Int1["1"]
-             Add
+             Add --> Int1["1"]
              Int2["2"]
 
       section(data-auto-animate="")
@@ -243,8 +241,8 @@ div.reveal
                     ^
 
           .relative.col-span-2
-            pre: code(data-line-numbers="")
-              script(type="text/template" class="language-ebnf").
+            pre: code(data-line-numbers="" class="language-ebnf")
+              script(type="text/template").
                 expr   ::= term ;
                 term   ::= factor { "+" factor } ;
                 factor ::= INT { "*" INT } ;
@@ -257,11 +255,8 @@ div.reveal
           .mermaid.grid.place-items-center: script(type="text/template").
             flowchart TB
 
-             Int1["1"]
-             Add
-             Int2["2"]
-             Mul
-             Int3["3"]
+             Add --> Int1["1"]
+             Mul --> Int2["2"]
 
       section(data-auto-animate="")
         h2 Execução
@@ -272,45 +267,249 @@ div.reveal
                       ^
 
           .relative.col-span-2
-            pre: code(data-line-numbers="")
-              script(type="text/template" class="language-ebnf").
+            pre: code(data-line-numbers="" class="language-ebnf")
+              script(type="text/template").
                 expr   ::= term ;
                 term   ::= factor { "+" factor } ;
                 factor ::= INT { "*" INT } ;
                 INT    ::= [0-9][0-9_]+ ;
 
+          ul
+            li factor
+            li term
+            li expr
+
           .mermaid.grid.place-items-center: script(type="text/template").
             flowchart TB
 
-             Int1["1"]
-             Add
-             Int2["2"]
-             Mul
-             Int3["3"]
-             Add --> Int1
-             Mul --> Int2
-             Mul --> Int3
-             Add --> Mul
+             Add --> Int1["1"] & Mul
+             Mul --> Int2["2"] & Int["3"]
 
     section
       h2 Sintaxe
 
-      pre.r-stretch: code: script(type="text/template" class="language-ebnf").
+      pre.r-stretch: code.language-ebnf: script(type="text/template").
         source_file ::= return_stmt ;
 
         return_stmt ::= "return" expr ";" ;
 
-        expr ::= additive ;
+        expr ::= term ;
 
-        additive       ::= multiplicative { ("+" | "-") multiplicative } ;
-        multiplicative ::= primary { ("*" | "/") primary } ;
-        primary        ::= "(" expr ")"
-                         | INT
-                         | ID
-                         ;
+        term    ::= factor { ("+" | "-") factor } ;
+        factor  ::= primary { ("*" | "/") primary } ;
+        primary ::= "(" expr ")"
+                  | INT
+                  | ID
+                  ;
 
         ID  ::= [a-zA-Z_][a-zA-Z_0-9]+ ;
         INT ::= [0-9][0-9_]+ ;
 
+      pre: code: script(type="text/template").
+        return 1 + 2 * 3;
+
+    section
+      section
+        h2 Na prática
+
+        pre.fragment: code.language-cpp: script(type="text/template").
+          auto parse(ErrorReporter *er, std::string_view source,
+                     std::span<Token const> tokens) -> AstNode {
+              auto p = Parser{.er = er, .source = source, .tokens = tokens};
+
+              return p.parse_source_file();
+          }
+
+      section
+        h2 Como Representar Um Nó Na AST
+
+        pre: code.language-cpp: script(type="text/template").
+          enum class AstNodeKind {
+              Err,
+              ReturnStmt,
+              Add,
+              Sub,
+              Mul,
+              Div,
+              Neg,
+              Int,
+              Id,
+          };
+
+      section(data-auto-animate="")
+        h2 Como Representar Um Nó Na AST
+
+        pre: code.language-cpp: script(type="text/template").
+          struct AstNode {
+              AstNodeKind                            kind;
+              Span                                   span;
+              std::vector<AstNode>                   children;
+              std::variant<std::monostate, uint64_t> value;
+          };
+
+      section(data-auto-animate="")
+        h2 Como Representar Um Nó Na AST
+
+        pre: code.language-cpp: script(type="text/template").
+          static auto Binary(
+              Span s, AstNodeKind kind, AstNode lhs, AstNode rhs)
+              -> AstNode {
+              return {
+                  .kind = kind,
+                  .span = s,
+                  .children = {lhs, rhs},
+                  .value = {},
+              };
+          }
+
+      section(data-auto-animate="")
+        h2 Como Representar Um Nó Na AST
+
+        pre: code.language-cpp: script(type="text/template").
+          static auto ReturnStmt(Span s, AstNode child) -> AstNode {
+              return {
+                  .kind = AstNodeKind::ReturnStmt,
+                  .span = s,
+                  .children = {child},
+                  .value = {},
+              };
+          }
+
+      section
+        h4 Converter BNF para C++
+
+        pre: code.language-cpp: script(type="text/template").
+          // source_file ::= return_stmt ;
+          auto parse_source_file() -> AstNode {
+              return parse_return_stmt();
+          }
+
+      section
+        h4 Converter BNF para C++
+
+        pre: code.language-cpp: script(type="text/template").
+          // return_stmt ::= "return" expr ";" ;
+          auto parse_return_stmt() -> AstNode {
+              auto s = span();
+              if (!consume("return")) return AstNode::Error(s);
+
+              auto child = parse_expr();
+
+              if (!consume(TokenType::Semi))
+                  return AstNode::Error(s.extend(prev_span()));
+
+              return AstNode::ReturnStmt(s.extend(prev_span()), child);
+          }
+
+      section
+        h4 Converter BNF para C++
+
+        pre: code.language-cpp: script(type="text/template").
+          // expr ::= additive ;
+          auto parse_expr() -> AstNode { return parse_term(); }
+
+      section
+        h4 Converter BNF para C++
+
+        pre.r-stretch: code.language-cpp: script(type="text/template").
+          // term ::= factor { ("+" | "-") factor } ;
+          auto parse_term() -> AstNode {
+              auto lhs = parse_factor();
+              while (check(TokenType::Plus) || check(TokenType::Minus)) {
+                  auto t = peek_and_advance();
+
+                  auto kind = AstNodeKind::Err;
+                  switch (t.type) {
+                      case TokenType::Plus: kind = AstNodeKind::Add; break;
+                      case TokenType::Minus: kind = AstNodeKind::Sub; break;
+                      default: __builtin_unreachable();
+                  }
+
+                  auto rhs = parse_factor();
+                  lhs = AstNode::Binary(lhs.span.extend(rhs.span), kind, lhs, rhs);
+              }
+
+              return lhs;
+          }
+
+      section
+        h4 Converter BNF para C++
+
+        pre.r-stretch: code.language-cpp: script(type="text/template").
+          // primary ::= "(" expr ")"
+          //           | INT
+          //           | ID
+          //           ;
+          auto parse_primary() -> AstNode {
+              if (match(TokenType::Lparen)) {
+                  // ...
+              }
+              if (match(TokenType::Int)) {
+                  // ...
+              }
+              if (match(TokenType::Id)) {
+                  // ...
+              }
+
+              er->report_error(span(), "expected expression, found {}", peek().type);
+              advance();
+
+              return AstNode::Error(prev_span());
+          }
+
+      section
+        h4 Converter BNF para C++
+
+        pre.r-stretch: code.language-cpp: script(type="text/template").
+          auto parse_primary() -> AstNode {
+              if (match(TokenType::Lparen)) {
+                  auto s = prev_span();
+                  auto child = parse_expr();
+
+                  if (!consume(TokenType::Rparen))
+                      return AstNode::Error(s.extend(child.span));
+
+                  return child;
+              }
+
+              // ...
+          }
+
+      section
+        h4 Converter BNF para C++
+
+        pre.r-stretch: code.language-cpp: script(type="text/template").
+          auto parse_primary() -> AstNode {
+              if (match(TokenType::Int)) {
+                  auto s = prev_span();
+                  auto str = s.src(source);
+
+                  uint64_t value;
+                  std::from_chars(
+                      str.data(), str.data() + str.length(), value);
+
+                  return AstNode::Int(s, value);
+              }
+
+              // ...
+          }
+
+      section
+        h4 Converter BNF para C++
+
+        pre.r-stretch: code.language-cpp: script(type="text/template").
+          auto parse_primary() -> AstNode {
+              if (match(TokenType::Id)) {
+                  auto s = prev_span();
+                  auto str = s.src(source);
+
+                  return AstNode::Id(s, std::string{str});
+              }
+
+              // ...
+          }
+
+    section
+      h2 Demo!
 
 // vim: ts=2 sts=2 sw=2 et
