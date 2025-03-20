@@ -1,0 +1,309 @@
+div.reveal
+  div.slides
+    section
+      h1 Compiladores na Prática
+
+      p Lucas Ross - GEC - P10
+      small
+        a(href="lucas.ross@gec.inatel.br") lucas.ross@gec.inatel.br
+        br
+        a(href="http://upprsk.github.io") upprsk.github.io
+
+    section
+      section(data-markdown=""): script(type="text/template").
+        ## Geração de código
+
+        Converter uma representação intermediaria em um formato de execução linear.
+
+        Não necessariamente assembly, mas algum formato "linear".
+
+        > Mesmo linguagens interpretadas costumam realizar um passo de _codegen_.
+        <!-- .element: class="fragment" -->
+
+      section
+        h2 Exemplos
+
+        .mermaid.grid.place-items-center: script(type="text/template").
+          flowchart LR
+
+          a[Clang AST] --> b[LLVM IR] --> bb[assembly]
+          c[GCC AST] --> d[GGC IR]  --> dd[assembly]
+          e[Python AST] --> f[Bytecode]
+          g[JS AST] --> h[Bytecode] --> i[LL IR] --> ii[assembly]
+
+    section
+      section(data-markdown=""): script(type="text/template").
+        ## Geração Direta de Código
+
+        Gerar o código diretamente a partir da AST.
+
+        Muito ineficiente, mas simples.
+        <!-- .element: class="fragment" -->
+
+      section(data-markdown=""): script(type="text/template").
+        ## _Tree-Walking_
+
+        Considerando a seguinte expressão.
+
+        ```python
+        1 + 2 * 3 # 7
+        ```
+
+        ```mermaid
+        flowchart TB
+
+        a[1]
+        b[2]
+        c[3]
+
+        mul["\*"] --> b & c
+        add["\+"] --> a & mul
+        ```
+
+      section(data-auto-animate="")
+        h2: i Tree-Walking
+
+        p Pode ser representada como uma #[i stack-machine].
+
+        pre(data-id="sm"): code(data-line-numbers="" class="language-bash"): script(type="text/template").
+          [  1  ]               # 1
+          [  1  ][  2  ]        # 2
+          [  1  ][  2  ][  3  ] # 3
+          [  1  ][  6  ]        # *
+          [  7  ]               # +
+
+      section(data-auto-animate="")
+        h2: i Tree-Walking
+
+        p Pode ser representada como uma #[i stack-machine].
+
+        pre(data-id="sm"): code(data-line-numbers="" class="language-bash"): script(type="text/template").
+          [ $t0 ]               # 1
+          [ $t0 ][ $t1 ]        # 2
+          [ $t0 ][ $t1 ][ $t2 ] # 3
+          [ $t0 ][ $t1 ]        # *
+          [ $t0 ]               # +
+
+      section(data-auto-animate="")
+        h2: i Tree-Walking
+
+        p Pode ser representada como uma #[i stack-machine].
+
+        pre(data-id="sm"): code(data-line-numbers="" class="language-bash"): script(type="text/template").
+          li $t0, 1         # [ $t0 ]               # 1
+          li $t1, 2         # [ $t0 ][ $t1 ]        # 2
+          li $t2, 3         # [ $t0 ][ $t1 ][ $t2 ] # 3
+          mul $t1, $t1, $t2 # [ $t0 ][ $t1 ]        # *
+          add $t0, $t0, $t1 # [ $t0 ]               # +
+
+    section
+      section
+        h2 Ao Código
+
+        pre: code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+          void codegen(
+              AstNode const& n, FILE* out, ErrorReporter& er) {
+              auto codegen = Codegen{.out = out, .er = &er};
+
+              codegen.preamble();
+              codegen.codegen_func(n);
+          }
+
+      section
+        pre: code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+          struct Codegen {
+            auto push_reg() -> Reg { return {stack_top++}; }
+            auto pop_reg() -> Reg { return {--stack_top}; }
+
+            uint8_t stack_top = 8;
+          };
+
+          struct Reg {
+              uint8_t n;
+          };
+
+      section
+        pre: code(data-line-numbers="|2,3|7-10|5" class="language-cpp"): script(type="text/template").
+          void codegen_func(AstNode const& n) {
+              println(out, ".global _start");
+              println(out, "_start:");
+
+              codegen_stmt(n);
+
+              println(out, "_start.end:");
+              println(out, "    move $a0, $v0");
+              println(out, "    li $v0, 10");
+              println(out, "    syscall");
+          }
+
+      section
+        pre: code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+          void codegen_stmt(AstNode const& n) {
+              switch (n.kind) {
+                  case AstNodeKind::ReturnStmt: {
+                      // ...
+                  } break;
+
+                  default:
+                      throw std::runtime_error{ /* ... */ };
+              }
+          }
+
+        blockquote.fragment O uso de #[i exceptions] não e ideal, mas o usaremos por enquanto.
+
+      section
+        pre: code(data-line-numbers="|4,5|7,8" class="language-cpp"): script(type="text/template").
+          void codegen_stmt(AstNode const& n) {
+              switch (n.kind) {
+                  case AstNodeKind::ReturnStmt: {
+                      codegen_expr(n.children.at(0));
+                      auto r = pop_reg();
+
+                      println(out, "    move $v0, {}", r);
+                      println(out, "    b _start.end");
+                  } break;
+                  // ...
+              }
+          }
+
+        pre.fragment: code(data-line-numbers="1|" class="language-cpp"): script(type="text/template").
+          println(out, "_start.end:");
+          println(out, "    move $a0, $v0");
+          println(out, "    li $v0, 10");
+          println(out, "    syscall");
+
+      section(data-auto-animate="")
+        pre.r-stretch(data-id="code"): code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+          void codegen_expr(AstNode const& n) {
+              switch (n.kind) {
+                  case AstNodeKind::Add:
+                  case AstNodeKind::Sub:
+                  case AstNodeKind::Mul:
+                  case AstNodeKind::Div:
+
+                  case AstNodeKind::Neg:
+
+                  case AstNodeKind::Int:
+
+                  default:
+                      throw std::runtime_error{ /* ... */ };
+              }
+          }
+
+      section(data-auto-animate="")
+        pre.r-stretch(data-id="code"): code(data-line-numbers="|10,11|15,16|11,15" class="language-cpp"): script(type="text/template").
+          void codegen_expr(AstNode const& n) {
+              switch (n.kind) {
+                  case AstNodeKind::Add:
+                  case AstNodeKind::Sub:
+                  case AstNodeKind::Mul:
+                  case AstNodeKind::Div: {
+                    codegen_expr(n.children.at(0));
+                    codegen_expr(n.children.at(1));
+
+                    auto rhs = pop_reg();
+                    auto lhs = pop_reg();
+
+                    // ...
+
+                    auto o = push_reg();
+                    println(out, "    {} {}, {}, {}", op, o, lhs, rhs);
+                  } break;
+              }
+          }
+
+      section(data-auto-animate="")
+        pre.r-stretch(data-id="code"): code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+          void codegen_expr(AstNode const& n) {
+              switch (n.kind) {
+                  case AstNodeKind::Add:
+                  case AstNodeKind::Sub:
+                  case AstNodeKind::Mul:
+                  case AstNodeKind::Div: {
+                    // ...
+
+                    std::string_view op;
+                    switch (n.kind) {
+                        case AstNodeKind::Add: op = "add"; break;
+                        case AstNodeKind::Sub: op = "sub"; break;
+                        case AstNodeKind::Mul: op = "mul"; break;
+                        case AstNodeKind::Div: op = "div"; break;
+                        default: __builtin_unreachable();
+                    }
+
+                    // ...
+                  } break;
+              }
+          }
+
+      section(data-auto-animate="")
+        pre(data-id="code"): code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+          case AstNodeKind::Neg: {
+              codegen_expr(n.children.at(0));
+              auto r = pop_reg();
+              auto o = push_reg();
+              println(out, "    sub {}, $zero, {}", o, r);
+          } break;
+
+      section(data-auto-animate="")
+        pre(data-id="code"): code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+          case AstNodeKind::Int: {
+              auto r = push_reg();
+              println(out, "    li {}, {}", r, n.value_uint64());
+          } break;
+
+    section
+      section
+        h2 Executando
+
+        .grid.grid-cols-2
+          div
+            pre: code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+              return 1 + 2 * 3;
+
+          pre.r-stretch: code(data-line-numbers="" class="language-bash"): script(type="text/template").
+            .set noreorder
+
+            .global _start
+            _start:
+                li $t0, 1
+                li $t1, 2
+                li $t2, 3
+                mul $t1, $t1, $t2
+                add $t0, $t0, $t1
+                move $v0, $t0
+                b _start.end
+            _start.end:
+                move $a0, $v0
+                li $v0, 10
+                syscall
+
+      section
+        h2 Executando
+
+        .grid.grid-cols-2
+          div
+            pre: code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+              return (1 * 2) - 3 - -1;
+
+          pre.r-stretch: code(data-line-numbers="" class="language-bash"): script(type="text/template").
+            .set noreorder
+
+            .global _start
+            _start:
+                li $t0, 1
+                li $t1, 2
+                mul $t0, $t0, $t1
+                li $t1, 3
+                sub $t0, $t0, $t1
+                li $t1, 1
+                sub $t1, $zero, $t1
+                sub $t0, $t0, $t1
+                move $v0, $t0
+                b _start.end
+            _start.end:
+                move $a0, $v0
+                li $v0, 10
+                syscall
+
+// vim: ts=2 sts=2 sw=2 et
