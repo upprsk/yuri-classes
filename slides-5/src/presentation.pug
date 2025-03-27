@@ -1,0 +1,332 @@
+div.reveal
+  div.slides
+    section
+      h1 Compiladores na Prática
+
+      p Lucas Ross - GEC - P10
+      small
+        a(href="lucas.ross@gec.inatel.br") lucas.ross@gec.inatel.br
+        br
+        a(href="http://upprsk.github.io") upprsk.github.io
+
+    section
+      section
+        h3 Variáveis locais
+
+        p.text-4xl.
+          Variáveis locais podem ser representadas de várias formas, dependendo de seu tipo
+          e como são utilizadas.
+
+        .grid.grid-cols-2.text-4xl
+          div
+            p '#[code x]' e '#[code y]' podem ser otimizados diretamente como registradores.
+
+            pre: code(data-line-numbers="" class="language-c"): script(type="text/template").
+              int x = 0;
+              int y = 1 + 2;
+
+          div
+            p '#[code x]' não pode ser usado como registrador, pois seu endereço é tomado.
+
+            pre: code(data-line-numbers="" class="language-c"): script(type="text/template").
+              int  x = 0;
+              int *y = &x;
+
+      section
+        h2 Nossa estratégia
+
+        p.
+          Não é permitido tomar o endereço de uma variável declarada com #[code var]. Para
+          se ter uma referência sera preciso usar um alocador local #[code alloca].
+
+        pre: code(data-line-numbers="" class="language-js"): script(type="text/template").
+          var x = alloca(0); // *int
+
+        blockquote.fragment.text-3xl.
+          #[code var] so pode ser usado com valores primitivos (menores ou iguais a #[b 32 bits]).
+
+        blockquote.fragment.text-3xl Vamos ignorar o stack por enquanto.
+
+    section
+      section(data-auto-animate="")
+        h2 Nova sintaxe
+
+        pre(data-id="ebnf"): code(data-line-numbers="" class="language-ebnf"): script(type="text/template").
+          source_file ::= return_stmt ;
+
+      section(data-auto-animate="")
+        pre(data-id="ebnf"): code(data-line-numbers="" class="language-ebnf"): script(type="text/template").
+          source_file ::= { stmt } EOF ;
+
+          stmt ::= return_stmt
+                 | expr_stmt
+                 | var_decl
+                 | assign
+                 ;
+
+      section(data-auto-animate="")
+        pre(data-id="ebnf"): code(data-line-numbers="|11-12" class="language-ebnf"): script(type="text/template").
+          source_file ::= { stmt } EOF ;
+
+          stmt ::= return_stmt
+                 | expr_stmt
+                 | var_decl
+                 | assign
+                 ;
+
+          return_stmt ::= "return" expr ";" ;
+          var_decl    ::= "var" ID "=" expr ";" ;
+          expr_stmt   ::= expr ";" ;
+          assign      ::= expr "=" expr ";" ;
+
+      section(data-auto-animate="")
+        pre.r-stretch(data-id="ebnf"): code(data-line-numbers="|2-3|5|6-14|16-21" class="language-cpp"): script(type="text/template").
+          auto parse_stmt() -> AstNode {
+              if (check("var")) return parse_var_decl();
+              if (check("return")) return parse_return_stmt();
+
+              auto lhs = parse_expr();
+              if (match(TokenType::Equal)) {
+                  auto rhs = parse_expr();
+
+                  if (!consume(TokenType::Semi))
+                      return AstNode::Error(prev_span());
+
+                  return AstNode::Assign(
+                      lhs.span.extend(prev_span()), lhs, rhs);
+              }
+
+              if (!consume(TokenType::Semi))
+                  return AstNode::Error(prev_span());
+
+              return AstNode::ExprStmt(
+                  lhs.span.extend(prev_span()), lhs);
+          }
+
+    section
+      section
+        h2 Codegen
+
+        p.
+          Como estamos analisando o código enquanto realizamos codegen, é agora que
+          definiremos regras de escopo.
+
+      section(data-auto-animate="")
+        pre(data-id="codegen"): code(data-line-numbers="|3-6,8-9" class="language-cpp"): script(type="text/template").
+          void codegen_stmt(AstNode const& n) {
+              switch (n.kind) {
+                  case AstNodeKind::VarDecl: break;
+                  case AstNodeKind::Block:
+                      break;
+                  case AstNodeKind::ExprStmt: break;
+                  case AstNodeKind::ReturnStmt: break;
+                  case AstNodeKind::Assign: break;
+                  default: // ...
+              }
+          }
+
+      section(data-auto-animate="")
+        pre(data-id="codegen"): code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+          void codegen_stmt(AstNode const& n) {
+              switch (n.kind) {
+                  // ...
+                  case AstNodeKind::Block:
+                      for (auto const& c : n.children)
+                          codegen_stmt(c);
+                      break;
+                  // ...
+              }
+          }
+
+      section(data-auto-animate="")
+        pre(data-id="codegen"): code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+          void codegen_stmt(AstNode const& n) {
+              switch (n.kind) {
+                  // NOTA: Nao tratando de regras de escopo
+                  case AstNodeKind::Block:
+                      for (auto const& c : n.children)
+                          codegen_stmt(c);
+                      break;
+                  // ...
+              }
+          }
+
+      section(data-auto-animate="")
+        pre(data-id="codegen"): code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+          void codegen_stmt(AstNode const& n) {
+              switch (n.kind) {
+                  // ...
+                  case AstNodeKind::ExprStmt:
+                    codegen_expr(n.children.at(0));
+                    pop_reg();
+                  // ...
+              }
+          }
+
+      section(data-auto-animate="")
+        pre(data-id="codegen"): code(data-line-numbers="" class="language-cpp"): script(type="text/template").
+          void codegen_stmt(AstNode const& n) {
+              switch (n.kind) {
+              // ...
+              case AstNodeKind::VarDecl: {
+                  codegen_expr(n.children.at(0));
+                  auto r = pop_reg();
+                  auto l = push_local(n.value_string());
+                  println(out, "    move {}, {}", l, r);
+              } break;
+              }
+          }
+
+      section(data-auto-animate="")
+        pre.r-stretch(data-id="codegen"): code(data-line-numbers="|11" class="language-cpp"): script(type="text/template").
+          auto push_local(std::string name) -> Reg {
+              auto r = locals.size();
+
+              auto reg = Reg{static_cast<uint8_t>(r + reg_s0)};
+              locals.push_back({.name = name, .reg = reg});
+
+              return reg;
+          }
+
+          auto lookup_local(std::string_view name) -> Local* {
+              for (ssize_t i = locals.size() - 1; i >= 0; i--) {
+                  if (locals.at(i).name == name) return &locals.at(0);
+              }
+
+              return nullptr;
+          }
+
+      section(data-auto-animate="")
+        pre.r-stretch(data-id="codegen"): code(data-line-numbers="|5|6-10|13,14" class="language-cpp"): script(type="text/template").
+          void codegen_expr(AstNode const& n) {
+              switch (n.kind) {
+              // ...
+              case AstNodeKind::Id: {
+                  auto l = lookup_local(n.value_string());
+                  if (l == nullptr) {
+                      er->report_error(n.span,
+                                       "undefined identifier: '{}'",
+                                       n.value_string());
+                      break;
+                  }
+
+                  auto r = push_reg();
+                  println(out, "    move {}, {}", r, l->reg);
+              } break;
+              // ...
+              }
+          }
+
+      section(data-auto-animate="")
+        pre.r-stretch(data-id="codegen"): code(data-line-numbers="4|5,6|8-13|15,27-29|16-26" class="language-cpp"): script(type="text/template").
+          void codegen_stmt(AstNode const& n) {
+              switch (n.kind) {
+              // ...
+              case AstNodeKind::Assign: {
+                  auto const& lhs = n.children.at(0);
+                  auto const& rhs = n.children.at(1);
+
+                  if (!lhs.is_lvalue()) {
+                      er->report_error(lhs.span,
+                                       "can't assign to non-lvalue {}",
+                                       lhs.kind);
+                      break;
+                  }
+
+                  if (lhs.kind == AstNodeKind::Id) {
+                      auto l = lookup_local(lhs.value_string());
+                      if (l == nullptr) {
+                          er->report_error(lhs.span,
+                                           "undefined identifier: '{}'",
+                                           lhs.value_string());
+                          break;
+                      }
+
+                      codegen_expr(rhs);
+                      auto r = pop_reg();
+                      println(out, "    move {}, {}", l->reg, r);
+                  } else {
+                      __builtin_unreachable();
+                  }
+              } break;
+              }
+          }
+
+    section
+      section
+        h2 Demo!
+
+        .grid.grid-cols-2
+          div
+            pre(data-id="codegen"): code(data-line-numbers="" class="language-js"): script(type="text/template").
+              var x = 12;
+              var y = 30;
+              return x + y;
+
+          div
+            pre(data-id="codegen"): code(data-line-numbers="|5-7|8-10|11|11-12|11-13|14-15" class="language-bash"): script(type="text/template").
+              .set noreorder
+
+              .global _start
+              _start:
+                  li $t0, 12
+                  # local x
+                  move $s0, $t0
+                  li $t0, 30
+                  # local y
+                  move $s1, $t0
+                  move $t0, $s0
+                  move $t1, $s0
+                  add $t0, $t0, $t1
+                  move $v0, $t0
+                  b _start.end
+              _start.end:
+                  move $a0, $v0
+                  li $v0, 10
+                  syscall
+
+      section
+        h2 Demo 2!
+
+        .grid.grid-cols-2
+          div
+            pre(data-id="codegen"): code(data-line-numbers="" class="language-js"): script(type="text/template").
+              var x = 0;
+              var y = 0;
+
+              x = 1;
+              y = 2;
+
+              x + y;
+              return x * y;
+
+          div
+            pre(data-id="codegen"): code(data-line-numbers="|5-10|11-14|15-17|18-22" class="language-bash"): script(type="text/template").
+              .set noreorder
+
+              .global _start
+              _start:
+                  li $t0, 0
+                  # local x
+                  move $s0, $t0
+                  li $t0, 0
+                  # local y
+                  move $s1, $t0
+                  li $t0, 1
+                  move $s0, $t0
+                  li $t0, 2
+                  move $s0, $t0
+                  move $t0, $s0
+                  move $t1, $s0
+                  add $t0, $t0, $t1
+                  move $t0, $s0
+                  move $t1, $s0
+                  mul $t0, $t0, $t1
+                  move $v0, $t0
+                  b _start.end
+              _start.end:
+                  move $a0, $v0
+                  li $v0, 10
+                  syscall
+
+// vim: ts=2 sts=2 sw=2 et
